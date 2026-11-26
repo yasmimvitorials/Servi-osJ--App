@@ -1,5 +1,7 @@
 package br.com.servicosja.backend.model;
 
+import com.servicoja.model.enums.Perfil;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
