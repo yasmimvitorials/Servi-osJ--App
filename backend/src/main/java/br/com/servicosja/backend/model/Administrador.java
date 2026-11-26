@@ -9,7 +9,7 @@ import jakarta.persistence.Entity;
 @Entity
 @DiscriminatorValue("ADMIN")
 
-public class Administrador {
+public class Administrador extends Usuario {
 	   public Administrador() {
 	        setPerfil(Perfil.ADMIN);
 	    }
