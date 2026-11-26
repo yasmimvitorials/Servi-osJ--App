@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "enderecos")
 
-public class Endereço {
+public class Endereco {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -86,3 +86,4 @@ public class Endereço {
 		this.longitude = longitude;
 	}
 }
+
