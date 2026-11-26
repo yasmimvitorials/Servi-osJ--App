@@ -43,7 +43,7 @@ public class Pagamento {
 	    @Column(nullable = false)
 	    private StatusPagamento status = StatusPagamento.PENDENTE;
 
-	    /** ID da transação no gateway de pagamento externo. */
+	    //ID da transação no gateway de pagamento externo. //
 	    @Column(name = "id_transacao_externo")
 	    private String idTransacaoExterno;
 
