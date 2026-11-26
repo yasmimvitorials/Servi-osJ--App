@@ -11,7 +11,7 @@ import br.com.servicosja.backend.repository.UsuarioRepository;
 
 @Service
 
-public class UsuarioDetailsService {
+public class UsuarioDetailsService implements UserDetailsService {
 	private final UsuarioRepository usuarioRepository;
 
     public UsuarioDetailsService(UsuarioRepository usuarioRepository) {
