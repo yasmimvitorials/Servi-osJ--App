@@ -18,7 +18,7 @@ import jakarta.persistence.UniqueConstraint;
 @Table(name = "prestador_servicos", uniqueConstraints = @UniqueConstraint(columnNames = { "prestador_id",
 		"servico_id" }))
 
-public class PrestadorServiço {
+public class PrestadorServico {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
