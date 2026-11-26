@@ -1,6 +1,6 @@
 package br.com.servicosja.backend.model;
 
-import br.com.servicosja.backend.model.enums;
+import br.com.servicosja.backend.model.enums.Perfil;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
