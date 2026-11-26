@@ -5,8 +5,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.servicoja.model.enums.Modalidade;
-import com.servicoja.model.enums.StatusPedido;
+import br.com.servicosja.backend.model.enums.Modalidade;
+import br.com.servicosja.backend.model.enums.StatusPedido;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

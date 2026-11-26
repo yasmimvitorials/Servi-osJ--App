@@ -2,8 +2,8 @@ package br.com.servicosja.backend.model;
 
 import java.math.BigDecimal;
 
-import com.servicoja.model.enums.FormaPagamento;
-import com.servicoja.model.enums.StatusPagamento;
+import br.com.servicosja.backend.model.enums.FormaPagamento;
+import br.com.servicosja.backend.model.enums.StatusPagamento;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

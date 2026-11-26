@@ -2,7 +2,7 @@ package br.com.servicosja.backend.model;
 
 import java.time.LocalTime;
 
-import com.servicoja.model.enums.DiaSemana;
+import br.com.servicosja.backend.model.enums.DiaSemana;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -2,7 +2,7 @@ package br.com.servicosja.backend.model;
 
 import java.time.LocalDateTime;
 
-import com.servicoja.model.enums.StatusConvite;
+import br.com.servicosja.backend.model.enums.StatusConvite;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -56,7 +56,4 @@ public class ConvitePedido {
     public void setEnviadoEm(LocalDateTime enviadoEm) { this.enviadoEm = enviadoEm; }
     public LocalDateTime getRespondidoEm() { return respondidoEm; }
     public void setRespondidoEm(LocalDateTime respondidoEm) { this.respondidoEm = respondidoEm; }
-}
-
-
 }

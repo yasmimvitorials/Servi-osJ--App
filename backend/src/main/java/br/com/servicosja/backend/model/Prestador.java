@@ -3,7 +3,7 @@ package br.com.servicosja.backend.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.servicoja.model.enums.Perfil;
+import br.com.servicosja.backend.model.enums.Perfil;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
