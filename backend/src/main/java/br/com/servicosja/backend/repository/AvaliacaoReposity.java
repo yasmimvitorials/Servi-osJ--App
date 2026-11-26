@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import br.com.servicosja.backend.model.Avaliacao;
 
 
-public interface AvaliacaoReposity {
+public interface AvaliacaoReposity extends JpaRepository<Avaliacao, Long> {
 	
 	List<Avaliacao> findByAvaliadoId(Long avaliadoId);
 
