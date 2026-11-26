@@ -5,11 +5,12 @@ import com.servicoja.model.enums.Perfil;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
-// Usuário do painel web administrativo (gerencia categorias e serviços). //
+//Usuário do painel web administrativo (gerencia categorias e serviços). //
 @Entity
 @DiscriminatorValue("ADMIN")
-public class Prestadorr {
-	public Administrador() {
-        setPerfil(Perfil.ADMIN);
-    }
-}
+
+public class Administrador {
+	   public Administrador() {
+	        setPerfil(Perfil.ADMIN);
+	    }
+	}
