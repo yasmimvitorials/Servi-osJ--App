@@ -3,7 +3,9 @@ package br.com.servicosja.backend.exception;
 
 public class CredenciaisInvalidasException  extends RuntimeException {
 
-    public CredenciaisInvalidasException() {
+	private static final long serialVersionUID = 1L;
+
+	public CredenciaisInvalidasException() {
         super("E-mail ou senha inválidos.");
     }
 }
