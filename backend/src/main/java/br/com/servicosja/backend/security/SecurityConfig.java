@@ -1,6 +1,5 @@
 package br.com.servicosja.backend.security;
 
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -20,7 +19,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 
 public class SecurityConfig {
-	private final TokenService tokenService;
+
+    private final TokenService tokenService;
     private final UsuarioDetailsService usuarioDetailsService;
 
     public SecurityConfig(TokenService tokenService, UsuarioDetailsService usuarioDetailsService) {
@@ -37,6 +37,10 @@ public class SecurityConfig {
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/prestadores/me/**").hasRole("PRESTADOR")
+                .requestMatchers(HttpMethod.POST, "/pedidos").hasRole("CLIENTE")
+                .requestMatchers("/pedidos/convites", "/pedidos/*/aceitar", "/pedidos/*/recusar",
+                        "/pedidos/*/iniciar", "/pedidos/*/concluir").hasRole("PRESTADOR")
                 .anyRequest().authenticated())
             .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .addFilterBefore(new JwtFilter(tokenService, usuarioDetailsService),
