@@ -3,19 +3,19 @@ package br.com.servicosja.backend.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.servicoja.backend.dto.DisponibilidadeRequest;
-import br.com.servicoja.backend.dto.DisponibilidadeResponse;
-import br.com.servicoja.backend.dto.PrestadorServicoRequest;
-import br.com.servicoja.backend.dto.PrestadorServicoResponse;
-import br.com.servicoja.backend.exception.RecursoNaoEncontradoException;
-import br.com.servicoja.backend.exception.RegraNegocioException;
-import br.com.servicoja.backend.model.Disponibilidade;
-import br.com.servicoja.backend.model.Prestador;
-import br.com.servicoja.backend.model.PrestadorServico;
-import br.com.servicoja.backend.model.Servico;
-import br.com.servicoja.backend.model.enums.DiaSemana;
-import br.com.servicoja.backend.repository.PrestadorRepository;
-import br.com.servicoja.backend.repository.ServicoRepository;
+import br.com.servicosja.backend.dto.DisponibilidadeRequest;
+import br.com.servicosja.backend.dto.DisponibilidadeResponse;
+import br.com.servicosja.backend.dto.PrestadorServicoRequest;
+import br.com.servicosja.backend.dto.PrestadorServicoResponse;
+import br.com.servicosja.backend.exception.RecursoNaoEncontradoException;
+import br.com.servicosja.backend.exception.RegraNegocioException;
+import br.com.servicosja.backend.model.Disponibilidade;
+import br.com.servicosja.backend.model.Prestador;
+import br.com.servicosja.backend.model.PrestadorServico;
+import br.com.servicosja.backend.model.Servico;
+import br.com.servicosja.backend.model.enums.DiaSemana;
+import br.com.servicosja.backend.repository.PrestadorRepository;
+import br.com.servicosja.backend.repository.ServicoRepository;
 
 /** Configurações do prestador: serviços que oferece, agenda semanal e raio de atuação. */
 @Service
