@@ -3,6 +3,12 @@ package br.com.servicosja.backend.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import br.com.servicosja.backend.dto.DisponibilidadeRequest;
 import br.com.servicosja.backend.dto.DisponibilidadeResponse;
 import br.com.servicosja.backend.dto.PrestadorServicoRequest;
@@ -21,7 +27,7 @@ import br.com.servicosja.backend.repository.ServicoRepository;
 @Service
 
 public class PrestadorService {
-	rivate final PrestadorRepository prestadorRepository;
+	private final PrestadorRepository prestadorRepository;
     private final ServicoRepository servicoRepository;
 
     public PrestadorService(PrestadorRepository prestadorRepository, ServicoRepository servicoRepository) {
