@@ -2,6 +2,7 @@ package br.com.servicosja.backend.exception;
 
 import java.util.List;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,6 +13,7 @@ import br.com.servicosja.backend.dto.ErroResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
 
     @ExceptionHandler(RegraNegocioException.class)
     public ResponseEntity<ErroResponse> handleRegraNegocio(RegraNegocioException ex) {
@@ -31,6 +33,12 @@ public class GlobalExceptionHandler {
                 .body(new ErroResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage()));
     }
 
+    @ExceptionHandler(AcessoNegadoException.class)
+    public ResponseEntity<ErroResponse> handleAcessoNegado(AcessoNegadoException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErroResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErroResponse> handleValidacao(MethodArgumentNotValidException ex) {
         List<String> detalhes = ex.getBindingResult().getFieldErrors().stream()
@@ -38,5 +46,13 @@ public class GlobalExceptionHandler {
                 .toList();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErroResponse(HttpStatus.BAD_REQUEST.value(), "Dados inválidos.", detalhes));
+    }
+
+    /** Violação de chave estrangeira ou de unicidade no banco (ex.: excluir um registro que está em uso). */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErroResponse> handleIntegridade(DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErroResponse(HttpStatus.CONFLICT.value(),
+                        "Operação não permitida: o registro está em uso ou já existe."));
     }
 }
