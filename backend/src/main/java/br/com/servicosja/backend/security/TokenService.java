@@ -21,39 +21,35 @@ import io.jsonwebtoken.security.Keys;
 
 public class TokenService {
 	private final SecretKey chave;
-    private final long expiracaoMinutos;
+	private final long expiracaoMinutos;
 
-    public TokenService(@Value("${jwt.secret}") String secret,
-                        @Value("${jwt.expiration-minutes}") long expiracaoMinutos) {
-        this.chave = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.expiracaoMinutos = expiracaoMinutos;
-    }
+	public TokenService(@Value("${jwt.secret}") String secret,
+			@Value("${jwt.expiration-minutes}") long expiracaoMinutos) {
+		this.chave = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+		this.expiracaoMinutos = expiracaoMinutos;
+	}
 
-    public String gerarToken(Usuario usuario) {
-        Instant agora = Instant.now();
-        return Jwts.builder()
-                .subject(usuario.getEmail())
-                .claim("perfil", usuario.getPerfil().name())
-                .issuedAt(Date.from(agora))
-                .expiration(Date.from(agora.plus(expiracaoMinutos, ChronoUnit.MINUTES)))
-                .signWith(chave)
-                .compact();
-    }
+	public String gerarToken(Usuario usuario) {
+		Instant agora = Instant.now();
+		return Jwts.builder().subject(usuario.getEmail()).claim("perfil", usuario.getPerfil().name())
+				.issuedAt(Date.from(agora)).expiration(Date.from(agora.plus(expiracaoMinutos, ChronoUnit.MINUTES)))
+				.signWith(chave).compact();
+	}
 
-    public boolean valido(String token) {
-        try {
-            lerClaims(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
-    }
+	public boolean valido(String token) {
+		try {
+			lerClaims(token);
+			return true;
+		} catch (JwtException | IllegalArgumentException e) {
+			return false;
+		}
+	}
 
-    public String extrairEmail(String token) {
-        return lerClaims(token).getSubject();
-    }
+	public String extrairEmail(String token) {
+		return lerClaims(token).getSubject();
+	}
 
-    private Claims lerClaims(String token) {
-        return Jwts.parser().verifyWith(chave).build().parseSignedClaims(token).getPayload();
-    }
+	private Claims lerClaims(String token) {
+		return Jwts.parser().verifyWith(chave).build().parseSignedClaims(token).getPayload();
+	}
 }

@@ -37,9 +37,14 @@ public class TokenServiceTest {
 	    void tokenAdulterado_deveSerInvalido() {
 	        String token = tokenService.gerarToken(cliente);
 
-	        assertFalse(tokenService.valido(token + "x"));
-	    }
+	        Cliente outro = new Cliente();
+	        outro.setEmail("invasor@email.com");
+	        String[] partes = token.split("\\.");
+	        String[] partesOutro = tokenService.gerarToken(outro).split("\\.");
+	        String adulterado = partes[0] + "." + partesOutro[1] + "." + partes[2];
 
+	        assertFalse(tokenService.valido(adulterado));
+	    }
 	    @Test
 	    @DisplayName("Texto qualquer não é um token válido")
 	    void textoAleatorio_deveSerInvalido() {
