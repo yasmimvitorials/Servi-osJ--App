@@ -18,15 +18,18 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
-public class Usuario {
+@Entity
+@Table(name = "usuarios")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "tipo", discriminatorType = DiscriminatorType.STRING, length = 20)
 
-	/* Usuario é a classe base de Cliente, Prestador e Administrador.
-	 Herança SINGLE_TABLE: todos ficam na MESMA tabela "usuarios", na coluna "tipo"*/
-	
-	@Entity
-	@Table(name = "usuarios")
-	@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-	@DiscriminatorColumn(name = "tipo", discriminatorType = DiscriminatorType.STRING, length = 20)
+public abstract class Usuario {
+
+	/*
+	 * Usuario é a classe base de Cliente, Prestador e Administrador. Herança
+	 * SINGLE_TABLE: todos ficam na MESMA tabela "usuarios", na coluna "tipo"
+	 */
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
