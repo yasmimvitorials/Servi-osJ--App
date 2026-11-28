@@ -20,8 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 
-
-    private final TokenService tokenService;
+	private final TokenService tokenService;
     private final UsuarioDetailsService usuarioDetailsService;
 
     public SecurityConfig(TokenService tokenService, UsuarioDetailsService usuarioDetailsService) {
