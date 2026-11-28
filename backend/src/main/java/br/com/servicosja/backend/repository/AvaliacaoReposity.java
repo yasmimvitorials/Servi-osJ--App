@@ -1,5 +1,6 @@
 package br.com.servicosja.backend.repository;
 
+
 import java.util.List;
 import java.util.Optional;
 
@@ -13,6 +14,8 @@ import br.com.servicosja.backend.model.Avaliacao;
 public interface AvaliacaoReposity extends JpaRepository<Avaliacao, Long> {
 	
 	List<Avaliacao> findByAvaliadoId(Long avaliadoId);
+
+    List<Avaliacao> findByAvaliadoIdOrderByDataDesc(Long avaliadoId);
 
     boolean existsByPedidoIdAndAvaliadorId(Long pedidoId, Long avaliadorId);
 
