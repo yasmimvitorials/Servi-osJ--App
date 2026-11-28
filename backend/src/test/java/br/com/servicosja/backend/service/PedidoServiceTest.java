@@ -1,6 +1,5 @@
 package br.com.servicosja.backend.service;
 
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -48,6 +47,8 @@ import br.com.servicosja.backend.repository.ConvitePedidoRepository;
 import br.com.servicosja.backend.repository.PedidoRepository;
 import br.com.servicosja.backend.repository.ServicoRepository;
 import br.com.servicosja.backend.repository.UsuarioRepository;
+
+@ExtendWith(MockitoExtension.class)
 
 @ExtendWith(MockitoExtension.class)
 
