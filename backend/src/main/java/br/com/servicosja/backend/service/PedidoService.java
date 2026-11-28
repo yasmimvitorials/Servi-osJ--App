@@ -34,318 +34,318 @@ import br.com.servicosja.backend.repository.ServicoRepository;
 import br.com.servicosja.backend.repository.UsuarioRepository;
 
 @Service
-
-
 public class PedidoService {
-	 private final PedidoRepository pedidoRepository;
-	    private final ClienteRepository clienteRepository;
-	    private final UsuarioRepository usuarioRepository;
-	    private final ServicoRepository servicoRepository;
-	    private final ConvitePedidoRepository convitePedidoRepository;
-	    private final MatchingService matchingService;
-	    private final ViabilidadeService viabilidadeService;
 
-	    public PedidoService(PedidoRepository pedidoRepository,
-	                         ClienteRepository clienteRepository,
-	                         UsuarioRepository usuarioRepository,
-	                         ServicoRepository servicoRepository,
-	                         ConvitePedidoRepository convitePedidoRepository,
-	                         MatchingService matchingService,
-	                         ViabilidadeService viabilidadeService) {
-	        this.pedidoRepository = pedidoRepository;
-	        this.clienteRepository = clienteRepository;
-	        this.usuarioRepository = usuarioRepository;
-	        this.servicoRepository = servicoRepository;
-	        this.convitePedidoRepository = convitePedidoRepository;
-	        this.matchingService = matchingService;
-	        this.viabilidadeService = viabilidadeService;
-	    }
+    private final PedidoRepository pedidoRepository;
+    private final ClienteRepository clienteRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final ServicoRepository servicoRepository;
+    private final ConvitePedidoRepository convitePedidoRepository;
+    private final MatchingService matchingService;
+    private final ViabilidadeService viabilidadeService;
 
-	    // ================= CLIENTE =================
+    public PedidoService(PedidoRepository pedidoRepository,
+                         ClienteRepository clienteRepository,
+                         UsuarioRepository usuarioRepository,
+                         ServicoRepository servicoRepository,
+                         ConvitePedidoRepository convitePedidoRepository,
+                         MatchingService matchingService,
+                         ViabilidadeService viabilidadeService) {
+        this.pedidoRepository = pedidoRepository;
+        this.clienteRepository = clienteRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.servicoRepository = servicoRepository;
+        this.convitePedidoRepository = convitePedidoRepository;
+        this.matchingService = matchingService;
+        this.viabilidadeService = viabilidadeService;
+    }
 
-	    @Transactional
-	    public PedidoResponse criarPedido(String emailCliente, PedidoRequest request) {
-	        Cliente cliente = clienteRepository.findByEmail(emailCliente)
-	                .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente não encontrado."));
-	        Servico servico = servicoRepository.findById(request.servicoId())
-	                .orElseThrow(() -> new RecursoNaoEncontradoException("Serviço não encontrado."));
+    // ================= CLIENTE =================
 
-	        validarModalidade(request);
+    @Transactional
+    public PedidoResponse criarPedido(String emailCliente, PedidoRequest request) {
+        Cliente cliente = clienteRepository.findByEmail(emailCliente)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente não encontrado."));
+        Servico servico = servicoRepository.findById(request.servicoId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Serviço não encontrado."));
 
-	        Pedido pedido = new Pedido();
-	        pedido.setCliente(cliente);
-	        pedido.setServico(servico);
-	        pedido.setDescricao(request.descricao().trim());
-	        pedido.setValorProposto(request.valorProposto());
-	        pedido.setModalidade(request.modalidade());
-	        pedido.setUrgente(request.urgente());
-	        pedido.setDataHoraServico(request.modalidade() == Modalidade.AGENDADO ? request.dataHoraServico() : null);
-	        pedido.setStatus(StatusPedido.ABERTO);
-	        pedido.setEndereco(definirEndereco(cliente, request.endereco()));
+        validarModalidade(request);
 
-	        if (request.fotos() != null) {
-	            for (String url : request.fotos()) {
-	                FotoPedido foto = new FotoPedido();
-	                foto.setPedido(pedido);
-	                foto.setUrl(url);
-	                pedido.getFotos().add(foto);
-	            }
-	        }
+        Pedido pedido = new Pedido();
+        pedido.setCliente(cliente);
+        pedido.setServico(servico);
+        pedido.setDescricao(request.descricao().trim());
+        pedido.setValorProposto(request.valorProposto());
+        pedido.setModalidade(request.modalidade());
+        pedido.setUrgente(request.urgente());
+        pedido.setDataHoraServico(request.modalidade() == Modalidade.AGENDADO ? request.dataHoraServico() : null);
+        pedido.setStatus(StatusPedido.ABERTO);
+        pedido.setEndereco(definirEndereco(cliente, request.endereco()));
 
-	        // prioridade inteligente: convida os prestadores selecionados (gravados junto com o pedido)
-	        for (Prestador prestador : matchingService.selecionarPrestadores(pedido)) {
-	            ConvitePedido convite = new ConvitePedido();
-	            convite.setPedido(pedido);
-	            convite.setPrestador(prestador);
-	            pedido.getConvites().add(convite);
-	        }
+        if (request.fotos() != null) {
+            for (String url : request.fotos()) {
+                FotoPedido foto = new FotoPedido();
+                foto.setPedido(pedido);
+                foto.setUrl(url);
+                pedido.getFotos().add(foto);
+            }
+        }
 
-	        return toResponse(pedidoRepository.save(pedido));
-	    }
+        // prioridade inteligente: convida os prestadores selecionados (gravados junto com o pedido)
+        for (Prestador prestador : matchingService.selecionarPrestadores(pedido)) {
+            ConvitePedido convite = new ConvitePedido();
+            convite.setPedido(pedido);
+            convite.setPrestador(prestador);
+            pedido.getConvites().add(convite);
+        }
 
-	    @Transactional
-	    public PedidoResponse cancelarPedido(String emailCliente, Long pedidoId) {
-	        Pedido pedido = buscarPedido(pedidoId);
+        return toResponse(pedidoRepository.save(pedido));
+    }
 
-	        if (!pedido.getCliente().getEmail().equals(emailCliente)) {
-	            throw new AcessoNegadoException("Somente o cliente que criou o pedido pode cancelá-lo.");
-	        }
-	        if (pedido.getStatus() != StatusPedido.ABERTO && pedido.getStatus() != StatusPedido.ACEITO) {
-	            throw new RegraNegocioException("Só é possível cancelar pedidos abertos ou aceitos.");
-	        }
+    @Transactional
+    public PedidoResponse cancelarPedido(String emailCliente, Long pedidoId) {
+        Pedido pedido = buscarPedido(pedidoId);
 
-	        pedido.setStatus(StatusPedido.CANCELADO);
-	        expirarConvitesPendentes(pedido);
-	        return toResponse(pedido);
-	    }
+        if (!pedido.getCliente().getEmail().equals(emailCliente)) {
+            throw new AcessoNegadoException("Somente o cliente que criou o pedido pode cancelá-lo.");
+        }
+        if (pedido.getStatus() != StatusPedido.ABERTO && pedido.getStatus() != StatusPedido.ACEITO) {
+            throw new RegraNegocioException("Só é possível cancelar pedidos abertos ou aceitos.");
+        }
 
-	    // ================= CONSULTAS (cliente e prestador) =================
+        pedido.setStatus(StatusPedido.CANCELADO);
+        expirarConvitesPendentes(pedido);
+        return toResponse(pedido);
+    }
 
-	    /** Cliente: pedidos que criou. Prestador: pedidos que aceitou. */
-	    @Transactional(readOnly = true)
-	    public List<PedidoResponse> listarMeus(String email) {
-	        Usuario usuario = usuarioRepository.findByEmail(email)
-	                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
+    // ================= CONSULTAS (cliente e prestador) =================
 
-	        List<Pedido> pedidos;
-	        if (usuario.getPerfil() == Perfil.CLIENTE) {
-	            pedidos = pedidoRepository.findByClienteIdOrderByCriadoEmDesc(usuario.getId());
-	        } else if (usuario.getPerfil() == Perfil.PRESTADOR) {
-	            pedidos = pedidoRepository.findByPrestadorIdOrderByCriadoEmDesc(usuario.getId());
-	        } else {
-	            throw new RegraNegocioException("Este perfil não possui pedidos.");
-	        }
-	        return pedidos.stream().map(this::toResponse).toList();
-	    }
+    /** Cliente: pedidos que criou. Prestador: pedidos que aceitou. */
+    @Transactional(readOnly = true)
+    public List<PedidoResponse> listarMeus(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
 
-	    @Transactional(readOnly = true)
-	    public PedidoResponse obterPedido(String email, Long pedidoId) {
-	        Pedido pedido = buscarPedido(pedidoId);
-	        exigirAcesso(pedido, email);
-	        return toResponse(pedido);
-	    }
+        List<Pedido> pedidos;
+        if (usuario.getPerfil() == Perfil.CLIENTE) {
+            pedidos = pedidoRepository.findByClienteIdOrderByCriadoEmDesc(usuario.getId());
+        } else if (usuario.getPerfil() == Perfil.PRESTADOR) {
+            pedidos = pedidoRepository.findByPrestadorIdOrderByCriadoEmDesc(usuario.getId());
+        } else {
+            throw new RegraNegocioException("Este perfil não possui pedidos.");
+        }
+        return pedidos.stream().map(this::toResponse).toList();
+    }
 
-	    // ================= PRESTADOR =================
+    @Transactional(readOnly = true)
+    public PedidoResponse obterPedido(String email, Long pedidoId) {
+        Pedido pedido = buscarPedido(pedidoId);
+        exigirAcesso(pedido, email);
+        return toResponse(pedido);
+    }
 
-	    /** Pedidos abertos para os quais o prestador foi convidado e ainda não respondeu. */
-	    @Transactional(readOnly = true)
-	    public List<ConviteResponse> listarConvites(String emailPrestador) {
-	        return convitePedidoRepository
-	                .findByPrestadorEmailAndStatusAndPedidoStatusOrderByEnviadoEmDesc(
-	                        emailPrestador, StatusConvite.ENVIADO, StatusPedido.ABERTO)
-	                .stream()
-	                .map(this::toConviteResponse)
-	                .toList();
-	    }
+    // ================= PRESTADOR =================
 
-	    /** O primeiro prestador a aceitar leva o pedido; os demais convites expiram. */
-	    @Transactional
-	    public PedidoResponse aceitarPedido(String emailPrestador, Long pedidoId) {
-	        // travamos a linha para impedir dois aceites simultâneos
-	        Pedido pedido = pedidoRepository.buscarParaAtualizar(pedidoId)
-	                .orElseThrow(() -> new RecursoNaoEncontradoException("Pedido não encontrado."));
-	        ConvitePedido convite = buscarConvite(pedido, emailPrestador);
+    /** Pedidos abertos para os quais o prestador foi convidado e ainda não respondeu. */
+    @Transactional(readOnly = true)
+    public List<ConviteResponse> listarConvites(String emailPrestador) {
+        return convitePedidoRepository
+                .findByPrestadorEmailAndStatusAndPedidoStatusOrderByEnviadoEmDesc(
+                        emailPrestador, StatusConvite.ENVIADO, StatusPedido.ABERTO)
+                .stream()
+                .map(this::toConviteResponse)
+                .toList();
+    }
 
-	        if (pedido.getStatus() != StatusPedido.ABERTO || convite.getStatus() != StatusConvite.ENVIADO) {
-	            throw new RegraNegocioException("Este pedido não está mais disponível para você.");
-	        }
+    /** O primeiro prestador a aceitar leva o pedido; os demais convites expiram. */
+    @Transactional
+    public PedidoResponse aceitarPedido(String emailPrestador, Long pedidoId) {
+        // travamos a linha para impedir dois aceites simultâneos
+        Pedido pedido = pedidoRepository.buscarParaAtualizar(pedidoId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Pedido não encontrado."));
+        ConvitePedido convite = buscarConvite(pedido, emailPrestador);
 
-	        pedido.setPrestador(convite.getPrestador());
-	        pedido.setStatus(StatusPedido.ACEITO);
-	        convite.setStatus(StatusConvite.ACEITO);
-	        convite.setRespondidoEm(LocalDateTime.now());
-	        expirarConvitesPendentes(pedido);
+        if (pedido.getStatus() != StatusPedido.ABERTO || convite.getStatus() != StatusConvite.ENVIADO) {
+            throw new RegraNegocioException("Este pedido não está mais disponível para você.");
+        }
 
-	        return toResponse(pedido);
-	    }
+        pedido.setPrestador(convite.getPrestador());
+        pedido.setStatus(StatusPedido.ACEITO);
+        convite.setStatus(StatusConvite.ACEITO);
+        convite.setRespondidoEm(LocalDateTime.now());
+        expirarConvitesPendentes(pedido);
 
-	    @Transactional
-	    public void recusarConvite(String emailPrestador, Long pedidoId) {
-	        Pedido pedido = buscarPedido(pedidoId);
-	        ConvitePedido convite = buscarConvite(pedido, emailPrestador);
+        return toResponse(pedido);
+    }
 
-	        if (convite.getStatus() != StatusConvite.ENVIADO) {
-	            throw new RegraNegocioException("Este convite já foi respondido ou expirou.");
-	        }
-	        convite.setStatus(StatusConvite.RECUSADO);
-	        convite.setRespondidoEm(LocalDateTime.now());
-	    }
+    @Transactional
+    public void recusarConvite(String emailPrestador, Long pedidoId) {
+        Pedido pedido = buscarPedido(pedidoId);
+        ConvitePedido convite = buscarConvite(pedido, emailPrestador);
 
-	    @Transactional
-	    public PedidoResponse iniciarPedido(String emailPrestador, Long pedidoId) {
-	        Pedido pedido = buscarPedido(pedidoId);
-	        exigirPrestadorDoPedido(pedido, emailPrestador);
+        if (convite.getStatus() != StatusConvite.ENVIADO) {
+            throw new RegraNegocioException("Este convite já foi respondido ou expirou.");
+        }
+        convite.setStatus(StatusConvite.RECUSADO);
+        convite.setRespondidoEm(LocalDateTime.now());
+    }
 
-	        if (pedido.getStatus() != StatusPedido.ACEITO) {
-	            throw new RegraNegocioException("Só é possível iniciar um pedido que foi aceito.");
-	        }
-	        pedido.setStatus(StatusPedido.EM_ANDAMENTO);
-	        return toResponse(pedido);
-	    }
+    @Transactional
+    public PedidoResponse iniciarPedido(String emailPrestador, Long pedidoId) {
+        Pedido pedido = buscarPedido(pedidoId);
+        exigirPrestadorDoPedido(pedido, emailPrestador);
 
-	    /** valorFinal é opcional: se não vier, vale o valor proposto. */
-	    @Transactional
-	    public PedidoResponse concluirPedido(String emailPrestador, Long pedidoId, BigDecimal valorFinal) {
-	        Pedido pedido = buscarPedido(pedidoId);
-	        exigirPrestadorDoPedido(pedido, emailPrestador);
+        if (pedido.getStatus() != StatusPedido.ACEITO) {
+            throw new RegraNegocioException("Só é possível iniciar um pedido que foi aceito.");
+        }
+        pedido.setStatus(StatusPedido.EM_ANDAMENTO);
+        return toResponse(pedido);
+    }
 
-	        if (pedido.getStatus() != StatusPedido.EM_ANDAMENTO) {
-	            throw new RegraNegocioException("Só é possível concluir um pedido que está em andamento.");
-	        }
-	        pedido.setValorFinal(valorFinal != null ? valorFinal : pedido.getValorProposto());
-	        pedido.setStatus(StatusPedido.CONCLUIDO);
-	        return toResponse(pedido);
-	    }
+    /** valorFinal é opcional: se não vier, vale o valor proposto. */
+    @Transactional
+    public PedidoResponse concluirPedido(String emailPrestador, Long pedidoId, BigDecimal valorFinal) {
+        Pedido pedido = buscarPedido(pedidoId);
+        exigirPrestadorDoPedido(pedido, emailPrestador);
 
-	    // ================= regras auxiliares =================
+        if (pedido.getStatus() != StatusPedido.EM_ANDAMENTO) {
+            throw new RegraNegocioException("Só é possível concluir um pedido que está em andamento.");
+        }
+        pedido.setValorFinal(valorFinal != null ? valorFinal : pedido.getValorProposto());
+        pedido.setStatus(StatusPedido.CONCLUIDO);
+        return toResponse(pedido);
+    }
 
-	    private void validarModalidade(PedidoRequest request) {
-	        if (request.urgente() && request.modalidade() != Modalidade.HOJE) {
-	            throw new RegraNegocioException("Pedidos urgentes devem ser para hoje.");
-	        }
-	        if (request.modalidade() == Modalidade.AGENDADO) {
-	            if (request.dataHoraServico() == null) {
-	                throw new RegraNegocioException("Informe a data e a hora do serviço agendado.");
-	            }
-	            if (!request.dataHoraServico().isAfter(LocalDateTime.now())) {
-	                throw new RegraNegocioException("A data do serviço agendado deve estar no futuro.");
-	            }
-	        }
-	    }
+    // ================= regras auxiliares =================
 
-	    /** O pedido guarda uma CÓPIA do endereço: se o cliente mudar de casa depois, o pedido antigo não muda. */
-	    private Endereco definirEndereco(Cliente cliente, EnderecoRequest informado) {
-	        Endereco novo = new Endereco();
-	        if (informado != null) {
-	            novo.setRua(informado.rua().trim());
-	            novo.setNumero(informado.numero());
-	            novo.setCep(informado.cep() == null ? null : informado.cep().replaceAll("\\D", ""));
-	            novo.setCidade(informado.cidade().trim());
-	            novo.setLatitude(informado.latitude());
-	            novo.setLongitude(informado.longitude());
-	            return novo;
-	        }
+    private void validarModalidade(PedidoRequest request) {
+        if (request.urgente() && request.modalidade() != Modalidade.HOJE) {
+            throw new RegraNegocioException("Pedidos urgentes devem ser para hoje.");
+        }
+        if (request.modalidade() == Modalidade.AGENDADO) {
+            if (request.dataHoraServico() == null) {
+                throw new RegraNegocioException("Informe a data e a hora do serviço agendado.");
+            }
+            if (!request.dataHoraServico().isAfter(LocalDateTime.now())) {
+                throw new RegraNegocioException("A data do serviço agendado deve estar no futuro.");
+            }
+        }
+    }
 
-	        Endereco perfil = cliente.getEndereco();
-	        if (perfil == null) {
-	            throw new RegraNegocioException(
-	                    "Informe o endereço do serviço ou cadastre um endereço no seu perfil.");
-	        }
-	        novo.setRua(perfil.getRua());
-	        novo.setNumero(perfil.getNumero());
-	        novo.setCep(perfil.getCep());
-	        novo.setCidade(perfil.getCidade());
-	        novo.setLatitude(perfil.getLatitude());
-	        novo.setLongitude(perfil.getLongitude());
-	        return novo;
-	    }
+    /** O pedido guarda uma CÓPIA do endereço: se o cliente mudar de casa depois, o pedido antigo não muda. */
+    private Endereco definirEndereco(Cliente cliente, EnderecoRequest informado) {
+        Endereco novo = new Endereco();
+        if (informado != null) {
+            novo.setRua(informado.rua().trim());
+            novo.setNumero(informado.numero());
+            novo.setCep(informado.cep() == null ? null : informado.cep().replaceAll("\\D", ""));
+            novo.setCidade(informado.cidade().trim());
+            novo.setLatitude(informado.latitude());
+            novo.setLongitude(informado.longitude());
+            return novo;
+        }
 
-	    private Pedido buscarPedido(Long id) {
-	        return pedidoRepository.findById(id)
-	                .orElseThrow(() -> new RecursoNaoEncontradoException("Pedido não encontrado."));
-	    }
+        Endereco perfil = cliente.getEndereco();
+        if (perfil == null) {
+            throw new RegraNegocioException(
+                    "Informe o endereço do serviço ou cadastre um endereço no seu perfil.");
+        }
+        novo.setRua(perfil.getRua());
+        novo.setNumero(perfil.getNumero());
+        novo.setCep(perfil.getCep());
+        novo.setCidade(perfil.getCidade());
+        novo.setLatitude(perfil.getLatitude());
+        novo.setLongitude(perfil.getLongitude());
+        return novo;
+    }
 
-	    private ConvitePedido buscarConvite(Pedido pedido, String emailPrestador) {
-	        return pedido.getConvites().stream()
-	                .filter(c -> c.getPrestador().getEmail().equals(emailPrestador))
-	                .findFirst()
-	                .orElseThrow(() -> new AcessoNegadoException("Você não foi convidado para este pedido."));
-	    }
+    private Pedido buscarPedido(Long id) {
+        return pedidoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Pedido não encontrado."));
+    }
 
-	    private void exigirPrestadorDoPedido(Pedido pedido, String emailPrestador) {
-	        Prestador prestador = pedido.getPrestador();
-	        if (prestador == null || !prestador.getEmail().equals(emailPrestador)) {
-	            throw new AcessoNegadoException("Somente o prestador do pedido pode executar esta ação.");
-	        }
-	    }
+    private ConvitePedido buscarConvite(Pedido pedido, String emailPrestador) {
+        return pedido.getConvites().stream()
+                .filter(c -> c.getPrestador().getEmail().equals(emailPrestador))
+                .findFirst()
+                .orElseThrow(() -> new AcessoNegadoException("Você não foi convidado para este pedido."));
+    }
 
-	    private void expirarConvitesPendentes(Pedido pedido) {
-	        for (ConvitePedido c : pedido.getConvites()) {
-	            if (c.getStatus() == StatusConvite.ENVIADO) {
-	                c.setStatus(StatusConvite.EXPIRADO);
-	                c.setRespondidoEm(LocalDateTime.now());
-	            }
-	        }
-	    }
+    private void exigirPrestadorDoPedido(Pedido pedido, String emailPrestador) {
+        Prestador prestador = pedido.getPrestador();
+        if (prestador == null || !prestador.getEmail().equals(emailPrestador)) {
+            throw new AcessoNegadoException("Somente o prestador do pedido pode executar esta ação.");
+        }
+    }
 
-	    /** Pode ver o pedido: o cliente dono, o prestador que aceitou, um prestador convidado, ou um administrador. */
-	    private void exigirAcesso(Pedido pedido, String email) {
-	        boolean participante = pedido.getCliente().getEmail().equals(email)
-	                || (pedido.getPrestador() != null && pedido.getPrestador().getEmail().equals(email))
-	                || pedido.getConvites().stream().anyMatch(c -> c.getPrestador().getEmail().equals(email));
-	        if (participante) {
-	            return;
-	        }
-	        boolean admin = usuarioRepository.findByEmail(email)
-	                .map(u -> u.getPerfil() == Perfil.ADMIN)
-	                .orElse(false);
-	        if (!admin) {
-	            throw new AcessoNegadoException("Você não tem acesso a este pedido.");
-	        }
-	    }
+    private void expirarConvitesPendentes(Pedido pedido) {
+        for (ConvitePedido c : pedido.getConvites()) {
+            if (c.getStatus() == StatusConvite.ENVIADO) {
+                c.setStatus(StatusConvite.EXPIRADO);
+                c.setRespondidoEm(LocalDateTime.now());
+            }
+        }
+    }
 
-	    // ================= conversões =================
+    /** Pode ver o pedido: o cliente dono, o prestador que aceitou, um prestador convidado, ou um administrador. */
+    private void exigirAcesso(Pedido pedido, String email) {
+        boolean participante = pedido.getCliente().getEmail().equals(email)
+                || (pedido.getPrestador() != null && pedido.getPrestador().getEmail().equals(email))
+                || pedido.getConvites().stream().anyMatch(c -> c.getPrestador().getEmail().equals(email));
+        if (participante) {
+            return;
+        }
+        boolean admin = usuarioRepository.findByEmail(email)
+                .map(u -> u.getPerfil() == Perfil.ADMIN)
+                .orElse(false);
+        if (!admin) {
+            throw new AcessoNegadoException("Você não tem acesso a este pedido.");
+        }
+    }
 
-	    private EnderecoResponse toEnderecoResponse(Endereco e) {
-	        return (e == null) ? null
-	                : new EnderecoResponse(e.getRua(), e.getNumero(), e.getCep(), e.getCidade(),
-	                        e.getLatitude(), e.getLongitude());
-	    }
+    // ================= conversões =================
 
-	    private ConviteResponse toConviteResponse(ConvitePedido convite) {
-	        Pedido p = convite.getPedido();
-	        return new ConviteResponse(
-	                p.getId(),
-	                p.getServico().getNome(),
-	                p.getDescricao(),
-	                p.getValorProposto(),
-	                p.getModalidade(),
-	                p.isUrgente(),
-	                p.getDataHoraServico(),
-	                toEnderecoResponse(p.getEndereco()),
-	                convite.getEnviadoEm(),
-	                viabilidadeService.calcular(p, convite.getPrestador()));
-	    }
+    private EnderecoResponse toEnderecoResponse(Endereco e) {
+        return (e == null) ? null
+                : new EnderecoResponse(e.getRua(), e.getNumero(), e.getCep(), e.getCidade(),
+                        e.getLatitude(), e.getLongitude());
+    }
 
-	    private PedidoResponse toResponse(Pedido p) {
-	        Prestador prestador = p.getPrestador();
-	        return new PedidoResponse(
-	                p.getId(),
-	                p.getStatus(),
-	                p.getServico().getId(),
-	                p.getServico().getNome(),
-	                p.getCliente().getId(),
-	                p.getCliente().getNome(),
-	                prestador == null ? null : prestador.getId(),
-	                prestador == null ? null : prestador.getNome(),
-	                p.getDescricao(),
-	                p.getValorProposto(),
-	                p.getValorFinal(),
-	                p.getModalidade(),
-	                p.isUrgente(),
-	                p.getDataHoraServico(),
-	                p.getCriadoEm(),
-	                toEnderecoResponse(p.getEndereco()),
-	                p.getFotos().stream().map(FotoPedido::getUrl).toList());
-	    }
-	}
+    private ConviteResponse toConviteResponse(ConvitePedido convite) {
+        Pedido p = convite.getPedido();
+        return new ConviteResponse(
+                p.getId(),
+                p.getServico().getNome(),
+                p.getDescricao(),
+                p.getValorProposto(),
+                p.getModalidade(),
+                p.isUrgente(),
+                p.getDataHoraServico(),
+                toEnderecoResponse(p.getEndereco()),
+                convite.getEnviadoEm(),
+                viabilidadeService.calcular(p, convite.getPrestador()));
+    }
+
+    private PedidoResponse toResponse(Pedido p) {
+        Prestador prestador = p.getPrestador();
+        return new PedidoResponse(
+                p.getId(),
+                p.getStatus(),
+                p.getServico().getId(),
+                p.getServico().getNome(),
+                p.getCliente().getId(),
+                p.getCliente().getNome(),
+                prestador == null ? null : prestador.getId(),
+                prestador == null ? null : prestador.getNome(),
+                p.getDescricao(),
+                p.getValorProposto(),
+                p.getValorFinal(),
+                p.getModalidade(),
+                p.isUrgente(),
+                p.getDataHoraServico(),
+                p.getCriadoEm(),
+                toEnderecoResponse(p.getEndereco()),
+                p.getFotos().stream().map(FotoPedido::getUrl).toList());
+    }
+}
+	

@@ -1,5 +1,6 @@
 package br.com.servicosja.backend.controller;
 
+
 import java.security.Principal;
 import java.util.List;
 
@@ -25,7 +26,7 @@ import jakarta.validation.Valid;
 
 public class PedidoController {
 
-    private final PedidoService pedidoService;
+	private final PedidoService pedidoService;
 
     public PedidoController(PedidoService pedidoService) {
         this.pedidoService = pedidoService;
